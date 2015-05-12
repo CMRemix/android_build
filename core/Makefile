@@ -2240,6 +2240,9 @@ ifneq ($(BLOCK_BASED_OTA),false)
     $(INTERNAL_OTA_PACKAGE_TARGET): block_based := --block
 endif
 
+BOOT_ZIP_FROM_IMAGE_SCRIPT := ./build/tools/releasetools/boot_flash_from_image
+KERNEL_PATH := $(TARGET_KERNEL_SOURCE)/arch/arm/configs/$(TARGET_KERNEL_CONFIG)
+
 $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE)
 	@echo "$(OTA_FROM_TARGET_SCRIPT)" > $(PRODUCT_OUT)/ota_script_path
 	@echo "Package OTA: $@"
@@ -2254,7 +2257,7 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE)
 
 CMREMIX_TARGET_PACKAGE := $(PRODUCT_OUT)/$(CMREMIX_BUILD_VERSION).zip
 
-.PHONY: otapackage bacon
+.PHONY: otapackage bacon bootzip
 otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
 bacon: otapackage
 	$(hide) find $(PRODUCT_OUT) -maxdepth 1 -xdev -samefile $(INTERNAL_OTA_PACKAGE_TARGET) | grep -v ota-$(FILE_NAME_TAG) | xargs rm -f
@@ -2268,6 +2271,12 @@ bacon: otapackage
 	@echo -e ${CL_BLD}${CL_RED}"   MD5:"${CL_BLD}" `cat $(CMREMIX_TARGET_PACKAGE).md5sum | cut -d ' ' -f 1`"${CL_RST}
 	@echo -e ${CL_BLD}${CL_RED}"  SIZE:"${CL_BLD}" `du -h $(CMREMIX_TARGET_PACKAGE) | cut -f1`"${CL_RST}
 	@echo -e ${CL_BLD}${CL_GRN}"================================================================================"${CL_RST}
+
+bootzip: bootimage
+	   $(BOOT_ZIP_FROM_IMAGE_SCRIPT) \
+	   $(recovery_fstab) \
+	   $(OUT) \
+	   $(TARGET_DEVICE)
 
 endif    # build_ota_package
 # -----------------------------------------------------------------
