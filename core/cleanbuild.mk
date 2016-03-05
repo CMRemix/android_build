@@ -236,6 +236,8 @@ installclean_files := \
 	$(PRODUCT_OUT)/*.changelog \
 	$(PRODUCT_OUT)/kernel \
 	$(PRODUCT_OUT)/*.zip.md5sum \
+	$(PRODUCT_OUT)/ramdisk-recovery.cpio \
+	$(PRODUCT_OUT)/recovery.id \
 	$(PRODUCT_OUT)/data \
 	$(PRODUCT_OUT)/skin \
 	$(PRODUCT_OUT)/obj/APPS \
