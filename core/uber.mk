@@ -37,6 +37,7 @@ STRICT_CLANG_LEVEL := \
 LOCAL_DISABLE_GRAPHITE :=
 
 GRAPHITE_FLAGS := \
+	-fuse-ld=gold \
 	-fgraphite \
 	-fgraphite-identity \
 	-floop-flatten \
@@ -54,7 +55,9 @@ GRAPHITE_FLAGS := \
 POLLY := -mllvm -polly \
 	-mllvm -polly-parallel -lgomp \
 	-mllvm -polly-ast-use-context \
-	-mllvm -polly-vectorizer=stripmine \
+	-mllvm -polly-vectorizer=polly \
+	-mllvm -polly-prevect-width=16 \
+	-mllvm -polly-tiling=true \
 	-mllvm -polly-opt-fusion=max \
 	-mllvm -polly-opt-maximize-bands=yes \
 	-mllvm -polly-run-dce \
@@ -62,7 +65,8 @@ POLLY := -mllvm -polly \
 	-mllvm -polly-run-inliner \
 	-mllvm -polly-detect-keep-going \
 	-mllvm -polly-opt-simplify-deps=no \
-	-mllvm -polly-rtc-max-arrays-per-group=40
+	-mllvm -polly-rtc-max-arrays-per-group=40 \
+	-mllvm -polly-dependences-computeout=0
 
 # Those are mostly Bluetooth modules
 DISABLE_POLLY_O3 := \
@@ -146,7 +150,7 @@ my_conlyflags := $(filter-out -O3 -O2 -Os -O1 -O0 -Og -Oz -Wall -Werror -g -Wext
 ifneq (1,$(words $(filter $(DISABLE_POLLY_O3),$(LOCAL_MODULE))))
   my_cflags += -O3
 else
-  my_cflags += -O2
+  my_cflags += -Os
 endif
 
 ifeq ($(my_clang), true)
@@ -183,6 +187,6 @@ ifeq ($(GRAPHITE_OPTS),true)
 endif
 
 ifeq ($(LOCAL_CLANG_LTO),true)
-  my_cflags += -flto -fuse-ld=gold
-  my_ldflags += -flto -fuse-ld=gold
+  my_cflags += -flto -fPIC
+  my_ldflags += -flto -fPIC
 endif

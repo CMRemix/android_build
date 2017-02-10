@@ -126,7 +126,6 @@ BUILD_NOTICE_FILE := $(BUILD_SYSTEM)/notice_files.mk
 BUILD_HOST_DALVIK_JAVA_LIBRARY := $(BUILD_SYSTEM)/host_dalvik_java_library.mk
 BUILD_HOST_DALVIK_STATIC_JAVA_LIBRARY := $(BUILD_SYSTEM)/host_dalvik_static_java_library.mk
 
-
 # ###############################################################
 # Parse out any modifier targets.
 # ###############################################################
@@ -269,9 +268,6 @@ define _gen_toc_command_for_macho
 $(hide) otool -l $(1) | grep LC_ID_DYLIB -A 5 > $(2)
 $(hide) nm -gP $(1) | cut -f1-2 -d" " | grep -v U$$ >> $(2)
 endef
-
-# Load our optimizations
-include $(BUILD_SYSTEM)/uber.mk
 
 combo_target := HOST_
 combo_2nd_arch_prefix :=
