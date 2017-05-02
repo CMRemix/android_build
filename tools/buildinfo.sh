@@ -63,8 +63,11 @@ if [ "$TARGET_UNIFIED_DEVICE" == "" ] ; then
     echo "ro.build.thumbprint=$BUILD_THUMBPRINT"
   fi
 fi
+
+echo "ro.cmremix.version=$CMREMIX_VERSION"
+
 echo "ro.build.characteristics=$TARGET_AAPT_CHARACTERISTICS"
 
-echo "ro.cm.device=$CM_DEVICE"
+echo "ro.cmremix.device=$CMREMIX_DEVICE"
 
 echo "# end build properties"

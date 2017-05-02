@@ -1,5 +1,18 @@
 # Put some miscellaneous rules here
 
+# Build system colors
+
+ifneq ($(BUILD_WITH_COLORS),0)
+  CL_RED="\033[31m"
+  CL_GRN="\033[32m"
+  CL_YLW="\033[33m"
+  CL_BLU="\033[34m"
+  CL_MAG="\033[35m"
+  CL_CYN="\033[36m"
+  CL_RST="\033[0m"
+  CL_BLD="\033[1m"
+endif
+
 # HACK: clear LOCAL_PATH from including last build target before calling
 # intermedites-dir-for
 LOCAL_PATH := $(BUILD_SYSTEM)
@@ -232,7 +245,7 @@ endif
 	$(hide) TARGET_BUILD_TYPE="$(TARGET_BUILD_VARIANT)" \
 			TARGET_BUILD_FLAVOR="$(TARGET_BUILD_FLAVOR)" \
 			TARGET_DEVICE="$(TARGET_VENDOR_DEVICE_NAME)" \
-			CM_DEVICE="$(TARGET_DEVICE)" \
+			CMREMIX_DEVICE="$(TARGET_DEVICE)" \
 			PRODUCT_NAME="$(TARGET_VENDOR_PRODUCT_NAME)" \
 			PRODUCT_BRAND="$(PRODUCT_BRAND)" \
 			PRODUCT_DEFAULT_LOCALE="$(call get-default-product-locale,$(PRODUCT_LOCALES))" \
@@ -1251,6 +1264,11 @@ FULL_SYSTEMIMAGE_DEPS := $(INTERNAL_SYSTEMIMAGE_FILES) $(INTERNAL_USERIMAGES_DEP
 # system image.
 INSTALLED_FILES_FILE := $(PRODUCT_OUT)/installed-files.txt
 $(INSTALLED_FILES_FILE): $(FULL_SYSTEMIMAGE_DEPS)
+ifneq ($(GENERATE_CHANGELOG), false)
+	@echo -e ${CL_BLD}"Start Generating CMRemix Roms Changelog"${CL_RST}
+	$(hide) ./vendor/cmremix/tools/changelogger
+	$(hide) mv $(PRODUCT_OUT)/Changelog.txt $(PRODUCT_OUT)/Changelog-CMREMIX-$(TARGET_DEVICE).txt
+endif
 	@echo Installed file list: $@
 	@mkdir -p $(dir $@)
 	@rm -f $@
@@ -1321,14 +1339,14 @@ endef
 $(BUILT_SYSTEMIMAGE): $(FULL_SYSTEMIMAGE_DEPS) $(INSTALLED_FILES_FILE)
 	$(call build-systemimage-target,$@)
 
-ifndef I_WANT_A_QUAIL_STAR
-ifneq ($(WITHOUT_CHECK_API),true)
-$(BUILT_SYSTEMIMAGE): checkapi
-ifneq ($(TARGET_DISABLE_CMSDK),true)
-$(BUILT_SYSTEMIMAGE): checkapi-cm
-endif
-endif
-endif
+#ifndef I_WANT_A_QUAIL_STAR
+#ifneq ($(WITHOUT_CHECK_API),true)
+#$(BUILT_SYSTEMIMAGE): checkapi
+#ifneq ($(TARGET_DISABLE_CMSDK),true)
+#$(BUILT_SYSTEMIMAGE): checkapi-cm
+#endif
+#endif
+#endif
 
 INSTALLED_SYSTEMIMAGE := $(PRODUCT_OUT)/system.img
 SYSTEMIMAGE_SOURCE_DIR := $(TARGET_OUT)
@@ -1799,7 +1817,7 @@ $(BUILT_OTATOOLS_PACKAGE): $(OTATOOLS) | $(ACP)
 	$(hide) $(ACP) $(HOST_OUT_JAVA_LIBRARIES)/VeritySigner.jar $(zip_root)/framework/
 	$(hide) $(ACP) -p system/extras/verity/build_verity_metadata.py $(zip_root)/system/extras/verity/
 	$(hide) $(ACP) -r -d -p build/tools/releasetools/* $(zip_root)/releasetools
-	$(hide) $(ACP) -p vendor/cm/build/tools/getb64key.py $(zip_root)/vendor/cm/build/tools/
+	$(hide) $(ACP) -p vendor/cmremix/build/tools/getb64key.py $(zip_root)/vendor/cmremix/build/tools/
 	$(hide) rm -rf $@ $(zip_root)/releasetools/*.pyc
 	$(hide) (cd $(zip_root) && zip -qryX $(abspath $@) *)
 	$(hide) zip -qryX $(abspath $@) build/target/product/security/
@@ -2139,9 +2157,9 @@ ifdef BOARD_PREBUILT_VENDORIMAGE
 	$(hide) cp $(INSTALLED_VENDORIMAGE_TARGET) $(zip_root)/IMAGES/
 endif
 ifdef PRODUCT_DEFAULT_DEV_CERTIFICATE
-	$(hide) vendor/cm/build/tools/getb64key.py $(PRODUCT_DEFAULT_DEV_CERTIFICATE).x509.pem > $(zip_root)/META/releasekey.txt
+	$(hide) vendor/cmremix/build/tools/getb64key.py $(PRODUCT_DEFAULT_DEV_CERTIFICATE).x509.pem > $(zip_root)/META/releasekey.txt
 else
-	$(hide) vendor/cm/build/tools/getb64key.py $(DEFAULT_SYSTEM_DEV_CERTIFICATE).x509.pem > $(zip_root)/META/releasekey.txt
+	$(hide) vendor/cmremix/build/tools/getb64key.py $(DEFAULT_SYSTEM_DEV_CERTIFICATE).x509.pem > $(zip_root)/META/releasekey.txt
 endif
 	$(hide) echo "ota_override_device=$(OTA_SCRIPT_OVERRIDE_DEVICE)" >> $(zip_root)/META/misc_info.txt
 	$(hide) echo "ota_override_prop=$(OTA_SCRIPT_OVERRIDE_PROP)" >> $(zip_root)/META/misc_info.txt
@@ -2198,7 +2216,7 @@ endif
 ifeq ($(WITH_GMS),true)
     $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false
 else
-ifneq ($(CM_BUILD),)
+ifneq ($(CMREMIX_BUILD),)
     $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := true
 else
     $(INTERNAL_OTA_PACKAGE_TARGET): backuptool := false
@@ -2234,14 +2252,22 @@ $(INTERNAL_OTA_PACKAGE_TARGET): $(BUILT_TARGET_FILES_PACKAGE)
 	   $(if $(OEM_OTA_CONFIG), -o $(OEM_OTA_CONFIG)) \
 	   $(BUILT_TARGET_FILES_PACKAGE) $@
 
-CM_TARGET_PACKAGE := $(PRODUCT_OUT)/lineage-$(LINEAGE_VERSION).zip
+CMREMIX_TARGET_PACKAGE := $(PRODUCT_OUT)/$(CMREMIX_BUILD_VERSION).zip
 
 .PHONY: otapackage bacon
 otapackage: $(INTERNAL_OTA_PACKAGE_TARGET)
 bacon: otapackage
-	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(CM_TARGET_PACKAGE)
-	$(hide) $(MD5SUM) $(CM_TARGET_PACKAGE) | sed "s|$(PRODUCT_OUT)/||" > $(CM_TARGET_PACKAGE).md5sum
-	@echo "Package Complete: $(CM_TARGET_PACKAGE)" >&2
+	$(hide) find $(PRODUCT_OUT) -maxdepth 1 -xdev -samefile $(INTERNAL_OTA_PACKAGE_TARGET) | grep -v ota-$(FILE_NAME_TAG) | xargs rm -f
+	$(hide) rm -f $(PRODUCT_OUT)/*.md5sum
+	$(hide) ln -f $(INTERNAL_OTA_PACKAGE_TARGET) $(CMREMIX_TARGET_PACKAGE)
+	$(hide) (cd `dirname $(CMREMIX_TARGET_PACKAGE)` && $(MD5SUM) `basename $(CMREMIX_TARGET_PACKAGE)` > $(CMREMIX_TARGET_PACKAGE).md5sum)
+	@echo -e ""
+	@echo -e ${CL_BLD}${CL_GRN}"===============================-Package complete-==============================="${CL_RST}
+	@echo -e ${CL_BLD}${CL_RED}"OUTDIR:"${CL_BLD} $(PRODUCT_OUT)${CL_RST}
+	@echo -e ${CL_BLD}${CL_RED}"   ROM:"${CL_BLD} $(CMREMIX_BUILD_VERSION).zip${CL_RST}
+	@echo -e ${CL_BLD}${CL_RED}"   MD5:"${CL_BLD}" `cat $(CMREMIX_TARGET_PACKAGE).md5sum | cut -d ' ' -f 1`"${CL_RST}
+	@echo -e ${CL_BLD}${CL_RED}"  SIZE:"${CL_BLD}" `du -h $(CMREMIX_TARGET_PACKAGE) | cut -f1`"${CL_RST}
+	@echo -e ${CL_BLD}${CL_GRN}"================================================================================"${CL_RST}
 
 endif    # build_ota_package
 # -----------------------------------------------------------------
