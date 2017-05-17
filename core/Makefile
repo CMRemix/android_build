@@ -1267,7 +1267,7 @@ $(INSTALLED_FILES_FILE): $(FULL_SYSTEMIMAGE_DEPS)
 ifneq ($(GENERATE_CHANGELOG), false)
 	@echo -e ${CL_BLD}"Start Generating CMRemix Roms Changelog"${CL_RST}
 	$(hide) ./vendor/cmremix/tools/changelogger
-	$(hide) mv $(PRODUCT_OUT)/Changelog.txt $(PRODUCT_OUT)/Changelog-CMREMIX-$(TARGET_DEVICE).txt
+	$(hide) mv $(PRODUCT_OUT)/Changelog.txt $(PRODUCT_OUT)/$(CMREMIX_BUILD_VERSION).changelog
 endif
 	@echo Installed file list: $@
 	@mkdir -p $(dir $@)
