@@ -131,8 +131,25 @@ endif
 endif # CALLED_FROM_SETUP
 
 ifneq ($(PRINT_BUILD_CONFIG),)
-$(info ============================================)
+$(info =====================================================================)
 $(foreach v, $(print_build_config_vars),\
   $(info $v=$($(v))))
-$(info ============================================)
+$(info =====================================================================)
 endif
+ifdef TARGET_DEVICE
+$(info   TARGET_DEVICE=$(TARGET_DEVICE))
+endif
+ifdef TARGET_CLANG_VERSION
+$(info   CLANG_VERSION=$(TARGET_CLANG_VERSION))
+else
+$(info   CLANG_VERSION=$(LLVM_PREBUILTS_VERSION))
+endif
+ifdef TARGET_GCC_VERSION
+$(info   TARGET_LINARO_GCC_VERSION=$(TARGET_GCC_VERSION))
+else
+$(info   TARGET_GCC_VERSION=$(TARGET_GCC_VERSION))
+endif
+ifdef GCC_OPTIMIZATION_LEVELS
+$(info   OPTIMIZATIONS=$(GCC_OPTIMIZATION_LEVELS))
+endif
+$(info =====================================================================)
