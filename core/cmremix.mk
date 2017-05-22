@@ -23,7 +23,10 @@ NO_OPTIMIZATION += camera.msm8084 gps.msm8084 gralloc.msm8084 keystore.msm8084 m
 ##########
 # FILTER #
 ##########
-CUSTOM_FLAGS := -O2 -g0 -DNDEBUG -fuse-ld=gold
+
+  OPT1 := [O3]
+
+CUSTOM_FLAGS := -O3 -g0 -DNDEBUG -fuse-ld=gold
 O_FLAGS := -O3 -O2 -Os -O1 -O0 -Og -Oz
 
 # Remove all flags we don't want use high level of optimization
@@ -34,6 +37,8 @@ my_conlyflags := $(filter-out -Wall -Werror -g -Wextra -Weverything $(O_FLAGS),$
 ########################
 # CMREMIX OPTIMIZATION #
 ########################
+
+  OPT2 := [misc]
 
 ifeq ($(my_clang),true)
  ifneq ($(strip $(LOCAL_IS_HOST_MODULE)),true)
@@ -53,6 +58,8 @@ DISABLE_CMREMIX_OPTIMIZATION := \
 # IPA #
 #######
 
+  OPT3 := [ipa]
+
 ifndef LOCAL_IS_HOST_MODULE
   ifeq (,$(filter true,$(my_clang)))
     ifneq (1,$(words $(filter $(DISABLE_ANALYZER),$(LOCAL_MODULE))))
@@ -71,7 +78,8 @@ DISABLE_ANALYZER := \
 ###################
 # STRICT ALIASING #
 ###################
-
+ifeq ($(STRICT_ALIASING),true)
+  OPT4 := [strict aliasing]
 ifeq ($(my_clang),true)
  ifeq (1,$(words $(filter $(DISABLE_STRICT),$(LOCAL_MODULE))))
    my_conlyflags += -fno-strict-aliasing
@@ -87,6 +95,7 @@ else
   else
    my_conlyflags += -fstrict-aliasing -Wstrict-aliasing=3 -Werror=strict-aliasing
    my_cppflags += -fstrict-aliasing -Wstrict-aliasing=3 -Werror=strict-aliasing
+  endif
  endif
 endif
 
@@ -108,12 +117,23 @@ GRAPHITE_FLAGS := \
 	-floop-strip-mine \
 	-floop-block
 
-ifndef LOCAL_IS_HOST_MODULE
-  ifeq ($(GRAPHITE_OPTS),true)
-    # Enable graphite only on GCC
-    ifneq ($(LOCAL_CLANG),true)
+# Do not use graphite on host modules or the clang compiler.
+ifeq (,$(filter true,$(LOCAL_IS_HOST_MODULE) $(LOCAL_CLANG)))
+
+ifeq ($(GRAPHITE_OPTS),true)
+  OPT5 := [graphite]
+   ifneq (1,$(words $(filter $(LOCAL_DISABLE_GRAPHITE),$(LOCAL_MODULE))))
+    ifdef my_cflags
       my_cflags += $(GRAPHITE_FLAGS)
+    else
+      my_cflags := $(GRAPHITE_FLAGS)
     endif
+    ifdef my_ldflags
+      my_ldflags += $(GRAPHITE_FLAGS)
+    else
+      my_ldflags := $(GRAPHITE_FLAGS)
+    endif
+   endif
   endif
 endif
 

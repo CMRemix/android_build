@@ -19,8 +19,11 @@ BLUETOOTH := bluetoothtbd_test libbluetooth_jni bluetooth.mapsapi bluetooth.defa
 ##  D R A G O N T C  ##
 #######################
 
+      # Polly ROM flags
+      OPT6 := [polly]
+
 # DTC module disable by version
-DISABLE_DTC_arm := libm librsjni libblasV8 libF77blasV8 libF77blas libRSSupport% libc libclcore libart libart-compiler libsigchain dalvikvm dex2oat dexdump libLLVMCodeGen libdng_sdk libdng% libbnnmlowpV8 libLLVMARMCodeGen libLLVMAArch64CodeGen libjni_filtershow_filters busybox libLLVMAnalysis libLLVM% libsqlite bcc libcompiler_rt-extras
+DISABLE_DTC_arm := libm librsjni libblasV8 libF77blasV8 libF77blas libRSSupport% libc libclcore libart libart-compiler libsigchain dalvikvm dex2oat dexdump libLLVMCodeGen libdng_sdk libdng% libbnnmlowpV8 libLLVMARMCodeGen libLLVMAArch64CodeGen libjni_filtershow_filters busybox libLLVMAnalysis libLLVM% libsqlite bcc libcompiler_rt-extras 7z
 
 DISABLE_DTC_arm64 := libm librsjni libblasV8 libF77blasV8 libF77blas libRSSupport% libc libclcore libart libart-compiler libsigchain dalvikvm dex2oat dexdump libLLVMCodeGen libdng_sdk libdng% libbnnmlowpV8 libLLVMARMCodeGen libLLVMAArch64CodeGen libjni_filtershow_filters busybox libLLVMAnalysis libLLVM% libsqlite bcc libcompiler_rt-extras
 
@@ -158,7 +161,13 @@ DISABLE_POLLY_arm := \
   libfuse_static \
   libntfs-3g_static \
   libntfs3g_mount_static \
-  libntfs3g_mkfs_main
+  libntfs3g_mkfs_main \
+  libntfs-3g \
+  libssh \
+  libavcodec \
+  libswresample \
+  libswscale \
+  racoon
 
 DISABLE_POLLY_arm64 := \
   libjpeg_static \
@@ -238,7 +247,7 @@ endif
 #############
 
 # Disable modules that don't work with Link Time Optimizations. Split up by arch.
-DISABLE_LTO_arm := libLLVMScalarOpts libjni_latinime_common_static libjni_latinime adbd nit libnetd_client libblas
+DISABLE_LTO_arm := libLLVMScalarOpts libjni_latinime_common_static libjni_latinime adbd nit libnetd_client libblas libaudioflinger libFFTEm libpixelflinger libswresample
 DISABLE_THINLTO_arm := libart libart-compiler libsigchain
 DISABLE_LTO_arm64 :=
 DISABLE_THINLTO_arm64 :=
