@@ -262,7 +262,9 @@ endif
 my_cppflags := $(my_cpp_std_version) $(my_cppflags)
 
 # Load our optimizations
-include $(BUILD_SYSTEM)/cmremix.mk
+ifneq ($(DISABLE_CMREMIX_OPTS),true)
+  include $(BUILD_SYSTEM)/cmremix.mk
+endif
 
 # Include DragonTC Optimizations
 ifneq ($(DISABLE_DTC_OPTS),true)
