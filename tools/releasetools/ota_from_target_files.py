@@ -755,9 +755,6 @@ else if get_stage("%(bcb_dev)s") == "3/3" then
     # Full OTA is done as an "incremental" against an empty source
     # image.  This has the effect of writing new data from the package
     # to the entire partition, but lets us reuse the updater code that
-    script.Print("Formatting system partition...")
-    script.FormatPartition("/system")
-    script.Print("Installing ROM...")
     # writes incrementals to do it.
     script.Print("Updating system partition")
     system_tgt = GetImage("system", OPTIONS.input_tmp, OPTIONS.info_dict)
